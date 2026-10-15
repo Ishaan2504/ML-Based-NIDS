@@ -1,0 +1,6 @@
+-r requirements.txt
+pytest>=8
+pytest-cov
+httpx
+ruff
+black

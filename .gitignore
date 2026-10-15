@@ -1,0 +1,35 @@
+# Python environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets and local settings
+.env
+
+# User supplied or generated data
+/data/raw/cicids2017/*.csv
+/data/interim/**
+/data/processed/**
+/data/runs/**
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/runs/.gitkeep
+
+# Model bundles are generated locally
+/models/**
+!models/.gitkeep
+
+# Generated figures
+/reports/figures/**
+!reports/figures/.gitkeep
+
+# Optional local database files
+*.sqlite
+*.db
+
+
