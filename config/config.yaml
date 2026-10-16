@@ -1,0 +1,62 @@
+# Sentinel NIDS - Core Project Configuration
+
+project:
+  name: "Sentinel NIDS"
+  version: "0.1.0"
+  random_seed: 42
+
+paths:
+  raw_data_dir: "data/raw/cicids2017"
+  interim_data_dir: "data/interim"
+  processed_data_dir: "data/processed"
+  runs_dir: "data/runs"
+  models_dir: "models"
+  reports_dir: "reports"
+  figures_dir: "reports/figures"
+
+splitting:
+  strategy: "contiguous_block"  # Options: contiguous_block, temporal
+  train_ratio: 0.60
+  val_ratio: 0.20
+  test_ratio: 0.20
+
+pipeline:
+  fast_mode_sample_fraction: 0.05
+  chunk_size: 50000
+  compression: "snappy"
+  drop_infinity: true
+  impute_strategy: "median"
+
+models:
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    solver: "lbfgs"
+    class_weight: "balanced"
+
+  random_forest:
+    n_estimators: 150
+    max_depth: 20
+    min_samples_split: 5
+    n_jobs: -1
+    class_weight: "balanced_subsample"
+
+  xgboost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.08
+    subsample: 0.8
+    colsample_bytree: 0.8
+    eval_metric: "logloss"
+
+  isolation_forest:
+    n_estimators: 100
+    contamination: 0.15
+    n_jobs: -1
+
+api:
+  host: "127.0.0.1"
+  port: 8000
+  title: "Sentinel NIDS Inference API"
+  version: "0.1.0"
+  max_batch_size: 10000
