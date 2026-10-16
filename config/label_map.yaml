@@ -1,0 +1,116 @@
+# CIC-IDS2017 Attack Family and Severity Taxonomy Mapping
+# Maps raw dataset string labels to binary classes, broad attack families, and alert severities.
+
+labels:
+  BENIGN:
+    binary_label: 0
+    family: "BENIGN"
+    severity: "none"
+    description: "Normal authorized network activity"
+
+  # DoS / DDoS Family
+  "DDoS":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "critical"
+    description: "Distributed Denial of Service attack via LOIT"
+
+  "DoS Hulk":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "high"
+    description: "HTTP Flood DoS attack targeting web applications"
+
+  "DoS GoldenEye":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "high"
+    description: "Keep-Alive HTTP connection exhaustion DoS"
+
+  "DoS slowloris":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "high"
+    description: "Slow headers HTTP exhaustion DoS"
+
+  "DoS Slowhttptest":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "high"
+    description: "Slow read/POST HTTP connection starvation DoS"
+
+  "Heartbleed":
+    binary_label: 1
+    family: "DoS/DDoS"
+    severity: "critical"
+    description: "OpenSSL TLS heartbeat memory disclosure exploit"
+
+  # PortScan / Reconnaissance Family
+  "PortScan":
+    binary_label: 1
+    family: "PortScan"
+    severity: "medium"
+    description: "Network service discovery and inbound port scanning"
+
+  # Brute Force Family
+  "FTP-Patator":
+    binary_label: 1
+    family: "Brute Force"
+    severity: "high"
+    description: "Automated credential brute forcing against FTP services"
+
+  "SSH-Patator":
+    binary_label: 1
+    family: "Brute Force"
+    severity: "high"
+    description: "Automated dictionary attack against SSH authentication"
+
+  # Web Attack Family
+  "Web Attack  Brute Force":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "high"
+    description: "Form and HTTP authentication credential brute force"
+
+  "Web Attack - Brute Force":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "high"
+    description: "Normalized variant of Web Attack Brute Force"
+
+  "Web Attack  XSS":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "high"
+    description: "Cross-Site Scripting reflected and stored payload injection"
+
+  "Web Attack - XSS":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "high"
+    description: "Normalized variant of Web Attack XSS"
+
+  "Web Attack  Sql Injection":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "critical"
+    description: "SQL command injection targeting application database backend"
+
+  "Web Attack - Sql Injection":
+    binary_label: 1
+    family: "Web Attacks"
+    severity: "critical"
+    description: "Normalized variant of Web Attack SQL Injection"
+
+  # Botnet & Infiltration Family
+  "Bot":
+    binary_label: 1
+    family: "Botnet"
+    severity: "critical"
+    description: "ARES Command and Control (C2) botnet infected communication"
+
+  "Infiltration":
+    binary_label: 1
+    family: "Infiltration"
+    severity: "critical"
+    description: "Metasploit exploit and privilege escalation payload"
