@@ -1,13 +1,18 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from pydantic import BaseModel, Field
+
 
 class NetworkFlowRecord(BaseModel):
     Destination_Port: Optional[int] = Field(default=80, alias="Destination Port")
     Flow_Duration: Optional[int] = Field(default=0, alias="Flow Duration")
     Total_Fwd_Packets: Optional[int] = Field(default=0, alias="Total Fwd Packets")
     Total_Backward_Packets: Optional[int] = Field(default=0, alias="Total Backward Packets")
-    Total_Length_of_Fwd_Packets: Optional[float] = Field(default=0.0, alias="Total Length of Fwd Packets")
-    Total_Length_of_Bwd_Packets: Optional[float] = Field(default=0.0, alias="Total Length of Bwd Packets")
+    Total_Length_of_Fwd_Packets: Optional[float] = Field(
+        default=0.0, alias="Total Length of Fwd Packets"
+    )
+    Total_Length_of_Bwd_Packets: Optional[float] = Field(
+        default=0.0, alias="Total Length of Bwd Packets"
+    )
     Fwd_Packet_Length_Max: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Max")
     Fwd_Packet_Length_Min: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Min")
     Fwd_Packet_Length_Mean: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Mean")
@@ -25,8 +30,10 @@ class NetworkFlowRecord(BaseModel):
     class Config:
         populate_by_name = True
 
+
 class BatchFlowRequest(BaseModel):
     flows: List[NetworkFlowRecord]
+
 
 class PredictionResponse(BaseModel):
     is_malicious: bool
@@ -37,11 +44,13 @@ class PredictionResponse(BaseModel):
     threshold: float
     model_version: str
 
+
 class BatchPredictionResponse(BaseModel):
     total_flows: int
     malicious_count: int
     benign_count: int
     predictions: List[PredictionResponse]
+
 
 class ModelInfoResponse(BaseModel):
     model_name: str

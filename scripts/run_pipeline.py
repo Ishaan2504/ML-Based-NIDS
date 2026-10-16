@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Sentinel NIDS - Pipeline Orchestration CLI
+Sentinel NIDS - Pipeline Orchestration CLI.
+
 Usage:
     python scripts/run_pipeline.py --stage validate
     python scripts/run_pipeline.py --stage process
@@ -9,35 +10,52 @@ Usage:
 """
 
 import argparse
-import sys
 import os
+import sys
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sentinel NIDS Pipeline Runner")
-    parser.add_argument("--stage", choices=["validate", "process", "train", "evaluate"],
-                        help="Execute a specific pipeline stage")
-    parser.add_argument("--fast", action="store_true",
-                        help="Run pipeline on subsampled data for rapid testing")
-    parser.add_argument("--full", action="store_true",
-                        help="Execute the full end-to-end pipeline")
+    parser.add_argument(
+        "--stage",
+        choices=["validate", "process", "train", "evaluate"],
+        help="Execute a specific pipeline stage",
+    )
+    parser.add_argument(
+        "--fast", action="store_true", help="Run pipeline on subsampled data for rapid testing"
+    )
+    parser.add_argument(
+        "--full", action="store_true", help="Execute the full end-to-end pipeline"
+    )
     return parser.parse_args()
+
 
 def run_validate():
     print("[*] Stage: Validating CIC-IDS2017 raw datasets in data/raw/cicids2017/...")
     raw_dir = os.path.join("data", "raw", "cicids2017")
-    if not os.path.exists(raw_dir) or not any(f.endswith(".csv") for f in os.listdir(raw_dir) if os.path.isfile(os.path.join(raw_dir, f))):
+    has_csvs = False
+    if os.path.exists(raw_dir):
+        has_csvs = any(
+            f.endswith(".csv")
+            for f in os.listdir(raw_dir)
+            if os.path.isfile(os.path.join(raw_dir, f))
+        )
+
+    if not has_csvs:
         print("[!] Warning: No raw CSV files detected in data/raw/cicids2017/")
-        print("[!] Please download the CIC-IDS2017 dataset and place the CSV files in data/raw/cicids2017/")
+        print("[!] Please place CIC-IDS2017 CSV files in data/raw/cicids2017/")
         print("[*] Directory validation completed with notices.")
         return 0
     print("[+] Dataset files verified successfully.")
     return 0
+
 
 def run_process(fast: bool = False):
     print(f"[*] Stage: Processing raw flows (Fast Mode: {fast})...")
     print("[*] Sanitizing headers, stripping inf/nan, outputting Parquet partitions...")
     print("[+] Interim datasets partitioned into data/interim/.")
     return 0
+
 
 def run_train(fast: bool = False):
     print(f"[*] Stage: Training multi-model benchmarks (Fast Mode: {fast})...")
@@ -46,11 +64,13 @@ def run_train(fast: bool = False):
     print("[+] Model bundle serialized to models/bundle.joblib.")
     return 0
 
+
 def run_evaluate():
     print("[*] Stage: Evaluating frozen models on held-out test split...")
     print("[+] Test metrics generated under reports/test_metrics.json.")
     print("[+] Evaluation curves generated under reports/figures/.")
     return 0
+
 
 def main():
     args = parse_args()
@@ -76,6 +96,7 @@ def main():
     else:
         print("[!] No stage specified. Use --help to see available options.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

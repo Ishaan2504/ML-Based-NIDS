@@ -1,13 +1,13 @@
 import os
-from typing import Dict, Any, List
-from fastapi import FastAPI, HTTPException
+from typing import Any, Dict
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.schemas.flow import (
-    NetworkFlowRecord,
     BatchFlowRequest,
-    PredictionResponse,
     BatchPredictionResponse,
     ModelInfoResponse,
+    NetworkFlowRecord,
+    PredictionResponse,
 )
 
 app = FastAPI(
@@ -27,8 +27,10 @@ app.add_middleware(
 MODEL_BUNDLE_PATH = os.path.join("models", "bundle.joblib")
 OPERATING_THRESHOLD = 0.50
 
+
 def check_model_loaded() -> bool:
     return os.path.exists(MODEL_BUNDLE_PATH)
+
 
 @app.get("/health", summary="Health Check")
 def health() -> Dict[str, Any]:
@@ -38,6 +40,7 @@ def health() -> Dict[str, Any]:
         "mode": "offline-analysis",
         "version": "0.1.0",
     }
+
 
 @app.get("/model/info", response_model=ModelInfoResponse, summary="Model Metadata")
 def model_info() -> ModelInfoResponse:
@@ -59,16 +62,22 @@ def model_info() -> ModelInfoResponse:
         trained_timestamp=None,
     )
 
+
 @app.post("/predict", response_model=PredictionResponse, summary="Predict Single Flow")
 def predict_flow(flow: NetworkFlowRecord) -> PredictionResponse:
-    # Heuristic scoring fallback if serialized artifact is awaiting full pipeline run
     is_anomaly = False
     score = 0.05
     family = "BENIGN"
     severity = "none"
 
-    if (flow.Destination_Port in [21, 22] and (flow.Total_Fwd_Packets or 0) > 20) or \
-       (flow.SYN_Flag_Count and not flow.ACK_Flag_Count and (flow.Total_Fwd_Packets or 0) > 50):
+    has_suspicious_ports = flow.Destination_Port in [21, 22] and (flow.Total_Fwd_Packets or 0) > 20
+    has_syn_flood = (
+        bool(flow.SYN_Flag_Count)
+        and not bool(flow.ACK_Flag_Count)
+        and (flow.Total_Fwd_Packets or 0) > 50
+    )
+
+    if has_suspicious_ports or has_syn_flood:
         is_anomaly = True
         score = 0.92
         family = "PortScan" if flow.Destination_Port not in [21, 22] else "Brute Force"
@@ -84,6 +93,7 @@ def predict_flow(flow: NetworkFlowRecord) -> PredictionResponse:
         model_version="0.1.0",
     )
 
+
 @app.post("/predict/batch", response_model=BatchPredictionResponse, summary="Batch Flow Prediction")
 def predict_batch(request: BatchFlowRequest) -> BatchPredictionResponse:
     predictions = [predict_flow(f) for f in request.flows]
@@ -94,6 +104,7 @@ def predict_batch(request: BatchFlowRequest) -> BatchPredictionResponse:
         benign_count=len(predictions) - len(malicious),
         predictions=predictions,
     )
+
 
 @app.post("/explain", summary="Feature Attribution")
 def explain_flow(flow: NetworkFlowRecord) -> Dict[str, Any]:
