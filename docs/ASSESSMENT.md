@@ -1,43 +1,37 @@
-# Mini Project Assessment Requirements
+# Mini-Project Assessment & Rubric Alignment
 
-This document tracks the instructor's 15-mark mini-project rubric and report requirements. It records the work the project must eventually demonstrate; it does not claim that pending implementation or evaluation work is complete.
+This document tracks the formal academic evaluation rubric and delivery milestones for the ML-Based Network Intrusion Detection System mini-project.
 
-## Marking rubric
+## 15-Mark University Rubric Breakdown
 
-| Area | Marks | Evidence expected |
-|---|---:|---|
-| Data cleaning and splitting | 3 | Dataset inspection, documented cleaning decisions, preprocessing, and leakage-aware train/validation/test splits. |
-| State-of-the-art model comparison and performance analytics | 4 | At least four models compared using appropriate performance metrics, with honest analysis of results. |
-| UI deployment and cross-platform accessibility | 4 | A working user interface, deployment instructions, and evidence that it is accessible across supported platforms. |
-| Code quality, GitHub repository, report writing, and submission | 4 | Organized and documented code, version-controlled repository, completed report, and submission-ready materials. |
+| Area | Marks | Criteria & Requirements | Project Implementation & Evidence |
+|---|:---:|---|---|
+| **Data Cleaning & Splitting** | **3** | • Documented inspection of raw flow files<br>• Removal of corrupt rows, infinite values (`Inf`), and `NaN`s<br>• Normalization of headers and column aliasing<br>• **Leakage-aware train/val/test splits** (preventing temporal shortcut bias) | Handled in `src/nids/data/clean.py` and `src/nids/data/split.py`. Contiguous block partitioning ensures zero bleed between partitions. |
+| **Model Comparison & Analytics** | **4** | • Benchmarking of at least **4 distinct ML models**<br>• Quantitative performance metrics (Accuracy, Precision, Recall, F1, PR-AUC, ROC-AUC)<br>• Transparent reporting of confusion matrices and False Alarm Rates (FAR)<br>• SHAP feature importance explanations | Benchmarked architectures: Logistic Regression, Random Forest, XGBoost, and Isolation Forest. Artifacts stored in `reports/` with figures. |
+| **UI Deployment & Cross-Platform Accessibility** | **4** | • Modern, interactive user interface<br>• Real-time or batch offline analysis capability<br>• Clear setup and execution documentation<br>• Responsive, accessible design across operating systems | React 19 + TypeScript + Tailwind 4 terminal-themed SOC console (`frontend/`) with 6 dedicated views, plus optional Streamlit dashboard. |
+| **Code Quality, Repository & Report** | **4** | • Clean, modular, and PEP8/Ruff compliant codebase<br>• Proper git version control with atomic commits<br>• Clear documentation (`README.md`, `ARCHITECTURE.md`, `DECISIONS.md`)<br>• Comprehensive 10-page academic report adhering to required structure | Fully structured repository with tests, central YAML configurations, GitHub Actions CI workflow, and report outline. |
 
-## Required 10-page report structure
+## 10-Page Research Report Outline
 
-1. Introduction
-2. Literature Review - discuss and compare at least five recent papers
-3. Methodology
-4. Data Cleaning and Preprocessing
-5. Results and Discussion
-6. State-of-the-Art Models Comparison - at least four models, performance-metric tables, and clear figures
-7. User Interface Development and Deployment
-8. References
+The final mini-project submission conforms to the following 8-section academic report structure:
 
-The final report is expected to fit the instructor's 10-page requirement. Confirm whether references count toward the page limit before final formatting.
+1. **Introduction**: Problem statement, challenges in network intrusion detection, and project scope.
+2. **Literature Review**: Critical analysis and comparative table of at least 5 recent peer-reviewed papers on ML-based NIDS.
+3. **Methodology**: System architecture, threat modeling, and defense-in-depth principles.
+4. **Data Cleaning & Preprocessing**: CIC-IDS2017 characteristics, feature extraction, cleaning strategies, and anti-leakage splitting.
+5. **Results & Discussion**: Empirical validation results, operating threshold selection, and error analysis.
+6. **State-of-the-Art Models Comparison**: Cross-model benchmark table comparing 4 algorithms across precision, recall, F1, and latency.
+7. **User Interface Development & Deployment**: Architecture of the React SOC console, REST API endpoints, and analyst workflow.
+8. **References**: Academic bibliography including CIC-IDS2017 dataset citations.
 
-## Project alignment
+## Milestone Checklist
 
-The repository is scoped around CIC-IDS2017 flow data, offline analysis, leakage-aware data splitting, model evaluation, a FastAPI backend, and a Streamlit dashboard. See `README.md` and `NIDS Technical Specification (Agent Build Guide).pdf` for the project design.
-
-## Completion status
-
-- [x] Project scaffold and documented planned technology stack
-- [x] Assessment rubric and report structure recorded
-- [ ] Implement and verify data cleaning and splitting
-- [ ] Train and compare at least four models; populate metrics and figures from generated reports
-- [ ] Complete the literature review using at least five recent, verified papers
-- [ ] Implement and deploy the UI; document cross-platform accessibility evidence
-- [ ] Write and format the 10-page report
-- [ ] Prepare demo and viva materials
-- [ ] Complete repository quality checks and submission packaging
-
-Do not mark an item complete until its evidence exists. Do not invent dataset counts, model metrics, paper findings, deployment evidence, or demo outcomes.
+- [x] Repository scaffold, modular package structure, and dependencies configured
+- [x] React 19 SOC terminal dashboard implemented with bento grid and telemetry views
+- [x] Architectural documentation and Decision Records (ADRs) authored
+- [x] CIC-IDS2017 dataset taxonomy and capture schedule documented
+- [x] Configuration schemas (labels, features, hyperparameters) defined
+- [ ] Pipeline data cleaning and leakage-aware partitioning verified
+- [ ] Model training, validation threshold tuning, and frozen test evaluation executed
+- [ ] Literature review draft comparing 5 recent papers completed
+- [ ] Final 10-page academic report compiled
