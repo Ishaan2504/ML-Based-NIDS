@@ -1,4 +1,4 @@
-# 🛡️ Sentinel NIDS: ML-Based Network Intrusion Detection System
+#  Sentinel NIDS: ML-Based Network Intrusion Detection System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
@@ -12,7 +12,7 @@
 
 ---
 
-## 📌 Executive Summary
+##  Executive Summary
 
 **Sentinel NIDS** is an enterprise-oriented, dataset-driven Network Intrusion Detection System (NIDS) designed for offline, forensic-grade analysis of bidirectional network flow records from the benchmark **CIC-IDS2017** dataset.
 
