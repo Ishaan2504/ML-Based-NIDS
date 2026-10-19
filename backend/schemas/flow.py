@@ -1,8 +1,10 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class NetworkFlowRecord(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     Destination_Port: Optional[int] = Field(default=80, alias="Destination Port")
     Flow_Duration: Optional[int] = Field(default=0, alias="Flow Duration")
     Total_Fwd_Packets: Optional[int] = Field(default=0, alias="Total Fwd Packets")
@@ -26,9 +28,6 @@ class NetworkFlowRecord(BaseModel):
     ACK_Flag_Count: Optional[int] = Field(default=0, alias="ACK Flag Count")
     Down_Up_Ratio: Optional[float] = Field(default=0.0, alias="Down/Up Ratio")
     Average_Packet_Size: Optional[float] = Field(default=0.0, alias="Average Packet Size")
-
-    class Config:
-        populate_by_name = True
 
 
 class BatchFlowRequest(BaseModel):

@@ -74,13 +74,13 @@ def predict_flow(flow: NetworkFlowRecord) -> PredictionResponse:
     has_syn_flood = (
         bool(flow.SYN_Flag_Count)
         and not bool(flow.ACK_Flag_Count)
-        and (flow.Total_Fwd_Packets or 0) > 50
+        and (flow.Total_Fwd_Packets or 0) >= 50
     )
 
     if has_suspicious_ports or has_syn_flood:
         is_anomaly = True
         score = 0.92
-        family = "PortScan" if flow.Destination_Port not in [21, 22] else "Brute Force"
+        family = "Brute Force" if flow.Destination_Port in [21, 22] else "PortScan"
         severity = "high"
 
     return PredictionResponse(
