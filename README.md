@@ -22,7 +22,7 @@ The system combines statistical machine learning classifiers (**Logistic Regress
 > **Academic & Research Integrity Notice**:
 > This project follows strict scientific evaluation principles. Train/validation/test splits are constructed to eliminate data leakage. Final benchmark metrics are derived exclusively from frozen models evaluated on the held-out test split. Uncalibrated scores are treated as statistical model outputs rather than verified ground truth.
 >
-> **Current Status**: Core architecture, React SOC frontend, API specifications, and pipeline scaffolds are established. Model benchmarking artifacts are generated via the reproducible pipeline under `reports/`.
+> **Current Status**: This repository is still a scaffold. No CIC-IDS2017 CSV files or model benchmark reports are included, and no model results have been generated. Place the dataset files under `data/raw/cicids2017/` and run the validation stage before using later pipeline stages.
 
 ---
 

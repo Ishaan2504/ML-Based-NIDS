@@ -21,7 +21,7 @@ def print_section(text):
 def check_files_exist():
     """Verify required files exist."""
     print_section("Checking required files...")
-    
+
     required_files = [
         "backend/__init__.py",
         "backend/schemas/__init__.py",
@@ -36,7 +36,7 @@ def check_files_exist():
         "requirements.txt",
         "requirements-dev.txt",
     ]
-    
+
     all_exist = True
     for file_path in required_files:
         if os.path.exists(file_path):
@@ -44,19 +44,19 @@ def check_files_exist():
         else:
             print(f"[MISSING] {file_path}")
             all_exist = False
-    
+
     return all_exist
 
 def run_ruff():
     """Run Ruff linting."""
     print_section("Running Ruff linting...")
-    
+
     result = subprocess.run(
         [sys.executable, "-m", "ruff", "check", "."],
         capture_output=True,
         text=True
     )
-    
+
     if result.returncode == 0:
         print("[OK] All Ruff checks passed!")
         return True
@@ -69,15 +69,15 @@ def run_ruff():
 def run_pytest():
     """Run pytest test suite."""
     print_section("Running pytest test suite...")
-    
+
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"],
         capture_output=True,
         text=True
     )
-    
+
     print(result.stdout)
-    
+
     if result.returncode == 0:
         print("\n[OK] All tests passed!")
         return True
@@ -91,28 +91,28 @@ def main():
     """Run all verification checks."""
     print_header("CI PIPELINE VERIFICATION")
     print("\nThis script verifies your code will pass GitHub Actions CI checks.")
-    
+
     # Track results
     results = {}
-    
+
     # Check files
     results['files'] = check_files_exist()
-    
+
     # Run Ruff
     results['ruff'] = run_ruff()
-    
+
     # Run tests
     results['pytest'] = run_pytest()
-    
+
     # Final summary
     print_header("VERIFICATION SUMMARY")
-    
+
     all_passed = all(results.values())
-    
+
     for check, passed in results.items():
         status = "[OK]" if passed else "[FAIL]"
         print(f"{status} {check.upper()}")
-    
+
     print("\n" + "=" * 70)
     if all_passed:
         print("SUCCESS: All checks passed!".center(70))

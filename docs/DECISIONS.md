@@ -51,3 +51,10 @@ This document records the foundational architectural decisions, rationale, and t
 - **Consequences**:
   - 10x speedup in data loading during pipeline execution.
   - Atomic, self-contained model artifacts containing both preprocessing transformers and trained estimators.
+
+### ADR-006: Technical specification is authoritative
+- **Date**: 2026-10-20
+- **Status**: Accepted
+- **Context**: The repository's earlier README and ADR-004 describe a React dashboard, while the attached technical specification defines a Streamlit dashboard and a phased implementation.
+- **Decision**: Follow the attached technical specification for new behavior. Preserve the existing React dashboard during the earlier data-pipeline phases; replace or remove it only in Phase 6 after Phases 1–5 pass their acceptance checks.
+- **Reason**: The specification is the current user-provided requirement, and its phase gates require a working data and inference foundation before dashboard implementation.

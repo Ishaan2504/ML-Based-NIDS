@@ -43,3 +43,17 @@ This document tracks chronologically verified implementation phases, commands ex
   - Train Logistic Regression, Random Forest, XGBoost, and Isolation Forest models.
   - Execute validation threshold tuning and freeze model bundle.
 - **Acceptance Status**: ⏳ Pending dataset download and local pipeline run.
+
+---
+
+### Phase 1 Specification Alignment (In Progress)
+- **Date**: 2026-10-20
+- **Work completed**:
+  - Added a CIC-IDS2017 adapter, CSV loader, header and label normalization, duplicate-header handling, and schema report generation.
+  - Added a synthetic-only CSV fixture and loader tests.
+  - Changed validation with no supplied CSV files to stop with the specification's actionable message and exit code 2.
+  - Removed success messages from unimplemented processing, training, and evaluation stages so they cannot claim nonexistent artifacts.
+  - Removed Python trailing whitespace implicated by the latest GitHub Ruff failure.
+- **Commands run**: `python -m compileall -q src backend scripts tests`; `ruff check .`; `pytest -q tests/`; `npm ci`; `npm run build`; `git diff --check`.
+- **Acceptance results**: Ruff passed; all 13 tests passed; frontend production build passed; syntax compilation and diff checks passed. No raw CIC-IDS2017 data is available, so schema validation correctly stops with the required message and code 2.
+- **Known issues**: Processing, training, and evaluation phases remain unimplemented and now exit with an error instead of claiming success. Continue with Phase 2 after the required real-data validation and dataset-specific checks.

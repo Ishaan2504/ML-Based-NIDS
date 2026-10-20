@@ -10,8 +10,10 @@ Usage:
 """
 
 import argparse
-import os
 import sys
+
+from nids.common.errors import DatasetMissingError, NIDSError
+from nids.data.validate import validate_dataset
 
 
 def parse_args():
@@ -32,44 +34,34 @@ def parse_args():
 
 def run_validate():
     print("[*] Stage: Validating CIC-IDS2017 raw datasets in data/raw/cicids2017/...")
-    raw_dir = os.path.join("data", "raw", "cicids2017")
-    has_csvs = False
-    if os.path.exists(raw_dir):
-        has_csvs = any(
-            f.endswith(".csv")
-            for f in os.listdir(raw_dir)
-            if os.path.isfile(os.path.join(raw_dir, f))
-        )
-
-    if not has_csvs:
-        print("[!] Warning: No raw CSV files detected in data/raw/cicids2017/")
-        print("[!] Please place CIC-IDS2017 CSV files in data/raw/cicids2017/")
-        print("[*] Directory validation completed with notices.")
-        return 0
-    print("[+] Dataset files verified successfully.")
+    try:
+        report = validate_dataset()
+    except DatasetMissingError as exc:
+        print(f"[!] {exc}")
+        return 2
+    except NIDSError as exc:
+        print(f"[!] Dataset validation stopped: {exc}")
+        return 2
+    print(f"[+] Dataset schema validated: {len(report['files'])} files.")
+    print("[+] Wrote reports/schema_report.json and reports/schema_report.md.")
     return 0
 
 
 def run_process(fast: bool = False):
-    print(f"[*] Stage: Processing raw flows (Fast Mode: {fast})...")
-    print("[*] Sanitizing headers, stripping inf/nan, outputting Parquet partitions...")
-    print("[+] Interim datasets partitioned into data/interim/.")
-    return 0
+    del fast
+    print("[!] Processing is not implemented yet; no Parquet artifacts were created.")
+    return 2
 
 
 def run_train(fast: bool = False):
-    print(f"[*] Stage: Training multi-model benchmarks (Fast Mode: {fast})...")
-    print("[*] Models: Logistic Regression, Random Forest, XGBoost, Isolation Forest")
-    print("[*] Validation threshold selection and model freezing...")
-    print("[+] Model bundle serialized to models/bundle.joblib.")
-    return 0
+    del fast
+    print("[!] Training is not implemented yet; no model bundle was created.")
+    return 2
 
 
 def run_evaluate():
-    print("[*] Stage: Evaluating frozen models on held-out test split...")
-    print("[+] Test metrics generated under reports/test_metrics.json.")
-    print("[+] Evaluation curves generated under reports/figures/.")
-    return 0
+    print("[!] Evaluation is not implemented yet; no test metrics were generated.")
+    return 2
 
 
 def main():
@@ -81,18 +73,21 @@ def main():
     if args.stage == "validate":
         return run_validate()
     elif args.stage == "process":
+        if run_validate() != 0:
+            return 2
         return run_process(fast=args.fast)
     elif args.stage == "train":
         return run_train(fast=args.fast)
     elif args.stage == "evaluate":
         return run_evaluate()
     elif args.fast or args.full:
-        run_validate()
-        run_process(fast=args.fast)
-        run_train(fast=args.fast)
-        run_evaluate()
-        print("\n[+] Pipeline run completed successfully.")
-        return 0
+        if run_validate() != 0:
+            return 2
+        if run_process(fast=args.fast) != 0:
+            return 2
+        if run_train(fast=args.fast) != 0:
+            return 2
+        return run_evaluate()
     else:
         print("[!] No stage specified. Use --help to see available options.")
         return 1

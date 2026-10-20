@@ -3,9 +3,7 @@
 import sys
 import os
 
-# Add the project root to Python path
 project_root = os.path.dirname(__file__)
-sys.path.insert(0, project_root)
 
 def test_imports():
     """Test that all necessary imports work."""

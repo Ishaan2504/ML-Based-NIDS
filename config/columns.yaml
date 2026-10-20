@@ -1,0 +1,23 @@
+# Canonical dataset metadata names and common CICFlowMeter aliases.
+metadata_aliases:
+  Flow ID: [flow id, flow_id]
+  Source IP: [source ip, src ip, src_ip, source address]
+  Source Port: [source port, src port, src_port]
+  Destination IP: [destination ip, dst ip, dst_ip, destination address]
+  Destination Port: [destination port, dst port, dst_port]
+  Protocol: [protocol, protocol number]
+  Timestamp: [timestamp, time, date time]
+
+forbidden_features:
+  - Flow ID
+  - Source IP
+  - Destination IP
+  - Source Port
+  - Timestamp
+  - Label
+  - label_fine
+  - label_family
+  - label_binary
+  - source_file
+  - row_id
+  - split
