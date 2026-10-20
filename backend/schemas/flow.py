@@ -1,61 +1,69 @@
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+"""Request models and validation helpers for flow inference."""
+
+from __future__ import annotations
+
+import math
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class NetworkFlowRecord(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    Destination_Port: Optional[int] = Field(default=80, alias="Destination Port")
-    Flow_Duration: Optional[int] = Field(default=0, alias="Flow Duration")
-    Total_Fwd_Packets: Optional[int] = Field(default=0, alias="Total Fwd Packets")
-    Total_Backward_Packets: Optional[int] = Field(default=0, alias="Total Backward Packets")
-    Total_Length_of_Fwd_Packets: Optional[float] = Field(
-        default=0.0, alias="Total Length of Fwd Packets"
-    )
-    Total_Length_of_Bwd_Packets: Optional[float] = Field(
-        default=0.0, alias="Total Length of Bwd Packets"
-    )
-    Fwd_Packet_Length_Max: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Max")
-    Fwd_Packet_Length_Min: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Min")
-    Fwd_Packet_Length_Mean: Optional[float] = Field(default=0.0, alias="Fwd Packet Length Mean")
-    Flow_IAT_Mean: Optional[float] = Field(default=0.0, alias="Flow IAT Mean")
-    Flow_IAT_Std: Optional[float] = Field(default=0.0, alias="Flow IAT Std")
-    Flow_IAT_Max: Optional[float] = Field(default=0.0, alias="Flow IAT Max")
-    FIN_Flag_Count: Optional[int] = Field(default=0, alias="FIN Flag Count")
-    SYN_Flag_Count: Optional[int] = Field(default=0, alias="SYN Flag Count")
-    RST_Flag_Count: Optional[int] = Field(default=0, alias="RST Flag Count")
-    PSH_Flag_Count: Optional[int] = Field(default=0, alias="PSH Flag Count")
-    ACK_Flag_Count: Optional[int] = Field(default=0, alias="ACK Flag Count")
-    Down_Up_Ratio: Optional[float] = Field(default=0.0, alias="Down/Up Ratio")
-    Average_Packet_Size: Optional[float] = Field(default=0.0, alias="Average Packet Size")
+class FlowValidationError(ValueError):
+    def __init__(self, code: str, message: str, details: dict[str, Any] | None = None):
+        super().__init__(message)
+        self.code = code
+        self.details = details or {}
 
 
-class BatchFlowRequest(BaseModel):
-    flows: List[NetworkFlowRecord]
+def normalize_feature_key(value: str) -> str:
+    return " ".join(value.strip().split())
 
 
-class PredictionResponse(BaseModel):
-    is_malicious: bool
-    label: str
-    attack_family: str
-    confidence: float
-    severity: str
-    threshold: float
-    model_version: str
+class FlowPayload(BaseModel):
+    """One flow whose numeric features use the dataset's original column names."""
 
+    model_config = ConfigDict(extra="ignore")
 
-class BatchPredictionResponse(BaseModel):
-    total_flows: int
-    malicious_count: int
-    benign_count: int
-    predictions: List[PredictionResponse]
+    features: dict[str, Any] = Field(default_factory=dict, exclude=True)
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_feature_mapping(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            raise FlowValidationError("invalid_flow", "Each flow must be a JSON object.")
+        if len(value) > 500:
+            raise FlowValidationError(
+                "too_many_features",
+                "A flow may contain at most 500 feature fields.",
+                {"feature_count": len(value), "maximum": 500},
+            )
+        normalized: dict[str, str] = {}
+        for key, feature_value in value.items():
+            if not isinstance(key, str):
+                raise FlowValidationError("invalid_feature_name", "Feature names must be strings.")
+            key_norm = normalize_feature_key(key)
+            if not key_norm:
+                raise FlowValidationError("invalid_feature_name", "Feature names cannot be blank.")
+            if key_norm in normalized:
+                raise FlowValidationError(
+                    "duplicate_feature",
+                    f"Feature names {normalized[key_norm]!r} and {key!r} collide after normalization.",
+                )
+            normalized[key_norm] = key
+            if isinstance(feature_value, bool) or (
+                feature_value is not None and not isinstance(feature_value, (int, float))
+            ):
+                raise FlowValidationError(
+                    "invalid_feature_value",
+                    f"Feature {key!r} must be a JSON number or null.",
+                )
+            if isinstance(feature_value, float) and not math.isfinite(feature_value):
+                raise FlowValidationError(
+                    "invalid_feature_value",
+                    f"Feature {key!r} must be finite; use null for missing or infinite values.",
+                )
+        return {"features": value}
 
-class ModelInfoResponse(BaseModel):
-    model_name: str
-    status: str
-    version: str
-    threshold: float
-    features_count: int
-    supported_families: List[str]
-    trained_timestamp: Optional[str] = None
+    @property
+    def flow_features(self) -> dict[str, Any]:
+        return self.features

@@ -1,65 +1,37 @@
 # System Architecture
 
-Sentinel NIDS is engineered as a modular, decoupled forensic network intrusion detection system. The architecture separates raw data ingestion, statistical machine learning pipelines, RESTful inference serving, and cyber analyst telemetry.
-
-## High-Level Architecture Flow
+Sentinel NIDS currently supports offline binary classification of CIC-IDS2017 flow CSVs. Training and inference run locally; uploaded CSV data is not saved by the API.
 
 ```mermaid
 flowchart TD
-    subgraph Data_Ingestion["1. Data Ingestion & Sanitization"]
-        A["Raw CIC-IDS2017 CSVs\n(data/raw/cicids2017/)"] --> B["Schema Validation & Header Normalization"]
-        B --> C["Data Cleaning: Inf/NaN Pruning & Column Aliasing"]
-        C --> D["Per-File Parquet Storage\n(data/interim/)"]
-    end
-
-    subgraph Data_Splitting["2. Leakage-Aware Partitioning"]
-        D --> E["Contiguous Block Splitting\n(Temporal / Flow Preservation)"]
-        E --> F["Train Split (60%)"]
-        E --> G["Validation Split (20%)"]
-        E --> H["Frozen Test Split (20%)"]
-    end
-
-    subgraph Modeling["3. Model Training & Optimization"]
-        F --> I["Feature Selection & Scaling\n(Fit on Train ONLY)"]
-        I --> J["Multi-Model Benchmark:\n• Logistic Regression\n• Random Forest\n• XGBoost\n• Isolation Forest"]
-        G --> K["Validation Threshold Tuning\n& Metric Calibration (PR-AUC, F1)"]
-        J --> K
-        K --> L["Model Freezing & Packaging\n(models/bundle.joblib)"]
-    end
-
-    subgraph Evaluation["4. Test Set Evaluation & Reporting"]
-        H --> M["Frozen Model Test Inference"]
-        L --> M
-        M --> N["Reports & Figures\n(Confusion Matrix, ROC/PR, SHAP)"]
-    end
-
-    subgraph Serving["5. Inference & Presentation Layer"]
-        L --> O["FastAPI REST Backend\n(127.0.0.1:8000)"]
-        O --> P["Interactive SOC Dashboard\n(React 19 + TypeScript + Tailwind 4)"]
-        O --> Q["Exploratory Streamlit UI\n(Optional)"]
-    end
+    A["CIC-IDS2017 CSV files"] --> B["Normalize headers and numeric values"]
+    B --> C["Stratified random 60/20/20 split"]
+    C --> D["Fit four classifiers on training partition"]
+    D --> E["Choose model and threshold on validation partition"]
+    E --> F["Evaluate frozen estimators on test partition"]
+    E --> G["Checksummed active bundle in models/"]
+    F --> H["reports/benchmark_metrics.json"]
+    G --> I["FastAPI bundle verification and prediction"]
+    H --> J["Model Performance dashboard table"]
+    I --> K["CSV upload, chunked scoring, summary and preview"]
 ```
 
-## Architectural Components
+## Training
 
-### 1. Ingestion & Preprocessing Layer (`src/nids/data/`)
-- **Schema Validation**: Validates that raw input CSVs match the CIC-IDS2017 feature specification (78+ statistical flow features).
-- **Sanitization**: Strips whitespace, normalizes column aliases, strips or caps infinite values (`+inf`, `-inf`), and drops rows with corrupted headers.
-- **Interim Storage**: Persists cleaned datasets as columnar Parquet files (`data/interim/`) with Snappy compression for 10x faster I/O.
+[`scripts/run_pipeline.py`](../scripts/run_pipeline.py) reads all CSV files in `data/raw/cicids2017/`, strips column-name whitespace, drops identifier columns and the source label from features, converts remaining feature values to numeric, and treats invalid and infinite values as missing. The task label is binary: `BENIGN` versus all attack labels.
 
-### 2. Leakage-Aware Partitioning Layer (`src/nids/features/`)
-- **Block-Based Splitting**: Avoids random row-wise shuffling which introduces temporal leakage across bidirectional conversations.
-- **Transformer Fit Isolation**: Scalers (`StandardScaler`), missing value imputers, and one-hot encoders are strictly fitted on the Training split only.
+The script creates stratified random row partitions (60% train, 20% validation, 20% test), and fits median imputers and any scaler inside each model pipeline using training data. It benchmarks Logistic Regression, Random Forest, Extra Trees, and XGBoost. Validation PR-AUC selects the active model; the operating threshold is selected by validation F1. Test metrics and confusion matrices for every candidate are written to `reports/benchmark_metrics.json`.
 
-### 3. Model Training & Validation Layer (`src/nids/training/`)
-- **Cross-Model Benchmarking**: Trains Logistic Regression (baseline), Random Forest, XGBoost (SOTA boosted trees), and Isolation Forest (unsupervised anomaly).
-- **Threshold Tuning**: Selects the operational decision boundary on the Validation set to minimize the False Alarm Rate (FAR) while maximizing Recall.
-- **Model Freezing**: Generates SHA-256 checksums and locks model weights into `models/bundle.joblib`.
+**Evaluation limitation:** the random row split may place repeated or temporally adjacent flows in different partitions. The resulting metrics can be optimistic. Use a temporal or capture-group split before reporting final academic performance.
 
-### 4. Evaluation & Reporting Layer (`src/nids/evaluation/`)
-- Evaluates the frozen model against the untouched Test partition.
-- Outputs structured metrics (`reports/test_metrics.json`) and visualization figures (`reports/figures/roc_curve.png`, `pr_curve.png`, `confusion_matrix.png`).
+The selected estimator, ordered feature names, threshold, library versions, dataset metadata, and feature ranges are written under `models/<model-id>/`. `models/ACTIVE` selects the bundle. Its SHA-256 checksum is verified before the API unpickles it.
 
-### 5. Serving & Telemetry Layer (`backend/` & `frontend/`)
-- **FastAPI Backend**: Asynchronous microservice providing `/health`, `/predict`, `/predict/batch`, and `/explain`.
-- **React SOC Frontend**: Cyber-themed command console with bento grid cards, live pipeline monitors, and forensic analysis lab.
+## API and Dashboard
+
+- `GET /health`: service and model readiness.
+- `GET /model/info`: active model metadata.
+- `GET /model/benchmark`: local comparison report for the dashboard.
+- `POST /predict` and `/predict/batch`: JSON flow inference.
+- `POST /analyze/csv`: local CSV upload, parsed and scored in chunks of 1,000 rows; returns totals and a preview capped at 100 rows.
+
+The React Traffic Analysis Lab calls `/analyze/csv` and displays the result counts and preview. The Model Performance view displays test precision, recall, F1, PR-AUC, and ROC-AUC. The remaining Alerts, Investigation, and Network views are still empty-state scaffolds. The API does not persist analysis runs. Multiclass family classification, severity assignment, SHAP explanations, and ROC/PR figure generation are not implemented.

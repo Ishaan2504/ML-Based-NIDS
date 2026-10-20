@@ -60,3 +60,20 @@ api:
   title: "Sentinel NIDS Inference API"
   version: "0.1.0"
   max_batch_size: 10000
+
+severity:
+  family_impact:
+    Bot: 3
+    Botnet: 3
+    RareOther: 3
+    WebAttack: 3
+    Web Attacks: 3
+    Infiltration: 3
+    BruteForce: 2
+    Brute Force: 2
+    DoS: 2
+    DDoS: 2
+    DoS/DDoS: 2
+    PortScan: 1
+    Unknown: 2
+  validation_quantiles: [0.33, 0.66] # Quantile positions; score edges are generated from validation data.

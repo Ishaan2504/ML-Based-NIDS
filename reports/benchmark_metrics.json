@@ -1,0 +1,241 @@
+{
+  "dataset": "CIC-IDS2017",
+  "rows": 2830743,
+  "features": [
+    "Destination Port",
+    "Flow Duration",
+    "Total Fwd Packets",
+    "Total Backward Packets",
+    "Total Length of Fwd Packets",
+    "Total Length of Bwd Packets",
+    "Fwd Packet Length Max",
+    "Fwd Packet Length Min",
+    "Fwd Packet Length Mean",
+    "Fwd Packet Length Std",
+    "Bwd Packet Length Max",
+    "Bwd Packet Length Min",
+    "Bwd Packet Length Mean",
+    "Bwd Packet Length Std",
+    "Flow Bytes/s",
+    "Flow Packets/s",
+    "Flow IAT Mean",
+    "Flow IAT Std",
+    "Flow IAT Max",
+    "Flow IAT Min",
+    "Fwd IAT Total",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Max",
+    "Fwd IAT Min",
+    "Bwd IAT Total",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Max",
+    "Bwd IAT Min",
+    "Fwd PSH Flags",
+    "Bwd PSH Flags",
+    "Fwd URG Flags",
+    "Bwd URG Flags",
+    "Fwd Header Length",
+    "Bwd Header Length",
+    "Fwd Packets/s",
+    "Bwd Packets/s",
+    "Min Packet Length",
+    "Max Packet Length",
+    "Packet Length Mean",
+    "Packet Length Std",
+    "Packet Length Variance",
+    "FIN Flag Count",
+    "SYN Flag Count",
+    "RST Flag Count",
+    "PSH Flag Count",
+    "ACK Flag Count",
+    "URG Flag Count",
+    "CWE Flag Count",
+    "ECE Flag Count",
+    "Down/Up Ratio",
+    "Average Packet Size",
+    "Avg Fwd Segment Size",
+    "Avg Bwd Segment Size",
+    "Fwd Header Length.1",
+    "Fwd Avg Bytes/Bulk",
+    "Fwd Avg Packets/Bulk",
+    "Fwd Avg Bulk Rate",
+    "Bwd Avg Bytes/Bulk",
+    "Bwd Avg Packets/Bulk",
+    "Bwd Avg Bulk Rate",
+    "Subflow Fwd Packets",
+    "Subflow Fwd Bytes",
+    "Subflow Bwd Packets",
+    "Subflow Bwd Bytes",
+    "Init_Win_bytes_forward",
+    "Init_Win_bytes_backward",
+    "act_data_pkt_fwd",
+    "min_seg_size_forward",
+    "Active Mean",
+    "Active Std",
+    "Active Max",
+    "Active Min",
+    "Idle Mean",
+    "Idle Std",
+    "Idle Max",
+    "Idle Min"
+  ],
+  "selected_model": "XGBoost",
+  "selection_metric": "validation PR-AUC",
+  "models": {
+    "Logistic Regression": {
+      "validation": {
+        "threshold": 0.6821589428285411,
+        "precision": 0.8222925180445272,
+        "recall": 0.9183089751636331,
+        "f1": 0.8676524781538696,
+        "pr_auc": 0.9194317039740669,
+        "roc_auc": 0.9790903105463118,
+        "confusion_matrix": [
+          [
+            432485,
+            22134
+          ],
+          [
+            9111,
+            102419
+          ]
+        ]
+      },
+      "test": {
+        "threshold": 0.6821589428285411,
+        "precision": 0.8218302555733317,
+        "recall": 0.916577751078195,
+        "f1": 0.866622018006409,
+        "pr_auc": 0.9189343531324106,
+        "roc_auc": 0.9788742671845372,
+        "confusion_matrix": [
+          [
+            432458,
+            22162
+          ],
+          [
+            9304,
+            102225
+          ]
+        ]
+      }
+    },
+    "Random Forest": {
+      "validation": {
+        "threshold": 0.9458308627354185,
+        "precision": 0.9982427377059575,
+        "recall": 0.9881197883977405,
+        "f1": 0.9931554686408717,
+        "pr_auc": 0.9997430979638706,
+        "roc_auc": 0.9999360144181411,
+        "confusion_matrix": [
+          [
+            454425,
+            194
+          ],
+          [
+            1325,
+            110205
+          ]
+        ]
+      },
+      "test": {
+        "threshold": 0.9458308627354185,
+        "precision": 0.9980249150622876,
+        "recall": 0.9876982668184956,
+        "f1": 0.9928347393467445,
+        "pr_auc": 0.9997078544126509,
+        "roc_auc": 0.9999341856234227,
+        "confusion_matrix": [
+          [
+            454402,
+            218
+          ],
+          [
+            1372,
+            110157
+          ]
+        ]
+      }
+    },
+    "Extra Trees": {
+      "validation": {
+        "threshold": 0.7404639314383592,
+        "precision": 0.993470326664795,
+        "recall": 0.9835739262978571,
+        "f1": 0.9884973575010475,
+        "pr_auc": 0.9985871140688278,
+        "roc_auc": 0.999629774515592,
+        "confusion_matrix": [
+          [
+            453898,
+            721
+          ],
+          [
+            1832,
+            109698
+          ]
+        ]
+      },
+      "test": {
+        "threshold": 0.7404639314383592,
+        "precision": 0.993216562816983,
+        "recall": 0.9833047906822441,
+        "f1": 0.9882358241906779,
+        "pr_auc": 0.9984328345384983,
+        "roc_auc": 0.9995940503512627,
+        "confusion_matrix": [
+          [
+            453871,
+            749
+          ],
+          [
+            1862,
+            109667
+          ]
+        ]
+      }
+    },
+    "XGBoost": {
+      "validation": {
+        "threshold": 0.9596672654151917,
+        "precision": 0.9982158382843066,
+        "recall": 0.9882453151618399,
+        "f1": 0.9932055545042487,
+        "pr_auc": 0.9998520178182073,
+        "roc_auc": 0.9999576208576626,
+        "confusion_matrix": [
+          [
+            454422,
+            197
+          ],
+          [
+            1311,
+            110219
+          ]
+        ]
+      },
+      "test": {
+        "threshold": 0.9596672654151917,
+        "precision": 0.9978808378840981,
+        "recall": 0.9879672551533681,
+        "f1": 0.9928993016445146,
+        "pr_auc": 0.9998286665736851,
+        "roc_auc": 0.9999591930026346,
+        "confusion_matrix": [
+          [
+            454386,
+            234
+          ],
+          [
+            1342,
+            110187
+          ]
+        ]
+      }
+    }
+  },
+  "test_set_used_for_selection": false
+}

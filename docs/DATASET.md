@@ -46,3 +46,7 @@ The network traffic is summarized into bidirectional network flow statistics (80
 - Dataset files are intended strictly for cybersecurity research and education.
 - Raw CSV files are excluded from git version control via `.gitignore`.
 - Analysts must download data directly from the official UNB portal and adhere to UNB CIC licensing terms.
+
+## Local Training Copy
+
+The local training run used the eight CSV files from the public [CIC-IDS2017 Hugging Face mirror](https://huggingface.co/datasets/c01dsnap/CIC-IDS2017), because the official CIC download form was unavailable during setup. This mirror is not the official publisher. Verify the data provenance and terms against the [official UNB CIC dataset page](https://www.unb.ca/cic/datasets/ids-2017.html) before submitting research, and cite the original CIC-IDS2017 paper above. The local data files remain git-ignored.

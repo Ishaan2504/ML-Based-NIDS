@@ -1,6 +1,6 @@
 # NIDS Security Operations frontend
 
-This folder contains the React and TypeScript frontend for the dashboard described in `../NIDS Technical Specification (Agent Build Guide).pdf`. It is a frontend-only implementation; the specification's API and pipeline are not implemented here. Counts, metrics, model IDs, and alerts are deliberately empty until generated run artifacts exist.
+This folder contains the React and TypeScript frontend for the dashboard described in `../NIDS Technical Specification (Agent Build Guide).pdf`. The API status and active-model chip read from the local FastAPI `/health` and `/model/info` endpoints. Dashboard analytics remain empty until the data pipeline produces run and report artifacts.
 
 ## Stack and structure
 
@@ -29,4 +29,6 @@ For a full shadcn CLI-managed setup, initialize with `npx shadcn@latest init` an
 
 The six navigation destinations follow the product spec: Security Overview, Threat Alerts, Traffic Investigation, Network Activity, Model Performance, and Traffic Analysis Lab. The overview and empty states are implemented; the other pages have their themed starting layouts. The dashboard labels the environment as offline, avoids implying live monitoring, and uses `Not yet generated. Run the pipeline.` instead of invented results. The interface uses a black grid and phosphor-green terminal theme based on the supplied reference.
 
-The technical specification describes a Streamlit dashboard. This React scaffold follows the requested React component integration and mirrors the specified dashboard theme and content rules; connecting the screens to the specified FastAPI service and generated report/run files remains future work.
+The frontend checks API readiness on load and every 15 seconds. Set `VITE_API_URL` at build time to change the API address; it defaults to `http://127.0.0.1:8000`. An online API does not mean a model is available: the API can report `degraded` until a verified bundle is installed.
+
+The technical specification describes Streamlit. This project keeps the React dashboard and mirrors the specified dashboard theme and content rules. The API status/model metadata are connected; prediction, saved-run, and report views remain future work until the inference pipeline and storage are implemented.

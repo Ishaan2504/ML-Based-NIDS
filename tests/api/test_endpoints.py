@@ -1,78 +1,44 @@
+"""API contract checks for startup without a generated model artifact."""
+
 from fastapi.testclient import TestClient
-from backend.main import app
 
-client = TestClient(app)
+from backend.main import create_app
 
 
-def test_health_endpoint():
-    response = client.get("/health")
+def test_health_reports_degraded_without_bundle(tmp_path):
+    with TestClient(create_app(model_dir=tmp_path)) as client:
+        response = client.get("/health")
     assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "online"
-    assert data["mode"] == "offline-analysis"
+    assert response.json()["status"] == "degraded"
+    assert response.json()["model_loaded"] is False
 
 
-def test_model_info_endpoint():
-    response = client.get("/model/info")
+def test_model_info_does_not_claim_model_metadata_without_bundle(tmp_path):
+    with TestClient(create_app(model_dir=tmp_path)) as client:
+        response = client.get("/model/info")
     assert response.status_code == 200
-    data = response.json()
-    assert "Sentinel NIDS" in data["model_name"]
-    assert data["threshold"] == 0.50
-    assert "BENIGN" in data["supported_families"]
+    assert response.json()["status"] == "not_loaded"
+    assert response.json()["threshold"] is None
+    assert response.json()["feature_count"] is None
 
 
-def test_predict_single_flow_benign():
-    payload = {
-        "Destination Port": 80,
-        "Flow Duration": 15000,
-        "Total Fwd Packets": 2,
-        "Total Backward Packets": 2,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["label"] == "BENIGN"
-    assert data["is_malicious"] is False
+def test_predict_returns_actionable_503_without_bundle(tmp_path):
+    with TestClient(create_app(model_dir=tmp_path)) as client:
+        response = client.post("/predict", json={"Destination Port": 80})
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "model_not_loaded"
+    assert response.json()["error"]["request_id"]
 
 
-def test_predict_single_flow_malicious():
-    payload = {
-        "Destination Port": 22,
-        "Flow Duration": 2000,
-        "Total Fwd Packets": 50,
-        "Total Backward Packets": 0,
-        "SYN Flag Count": 1,
-        "ACK Flag Count": 0,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["label"] == "MALICIOUS"
-    assert data["is_malicious"] is True
+def test_batch_requires_flow_records(tmp_path):
+    with TestClient(create_app(model_dir=tmp_path)) as client:
+        response = client.post("/predict/batch", json={"flows": []})
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "empty_input"
 
 
-def test_batch_prediction():
-    payload = {
-        "flows": [
-            {"Destination Port": 80, "Total Fwd Packets": 2},
-            {"Destination Port": 21, "Total Fwd Packets": 40},
-        ]
-    }
-    response = client.post("/predict/batch", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["total_flows"] == 2
-    assert len(data["predictions"]) == 2
-
-
-def test_explain_flow():
-    payload = {
-        "Destination Port": 80,
-        "Flow Duration": 50000,
-        "Total Fwd Packets": 10,
-    }
-    response = client.post("/explain", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert "top_features" in data
-    assert len(data["top_features"]) > 0
+def test_feature_keys_must_not_collide_after_normalization(tmp_path):
+    with TestClient(create_app(model_dir=tmp_path)) as client:
+        response = client.post("/predict", json={"Flow Duration": 1, " Flow   Duration ": 2})
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "duplicate_feature"

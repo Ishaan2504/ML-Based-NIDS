@@ -1,4 +1,4 @@
-#  Sentinel NIDS: ML-Based Network Intrusion Detection System
+# 🛡️ Sentinel NIDS: ML-Based Network Intrusion Detection System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" />
@@ -12,17 +12,17 @@
 
 ---
 
-##  Executive Summary
+## 📌 Executive Summary
 
-**Sentinel NIDS** is an enterprise-oriented, dataset-driven Network Intrusion Detection System (NIDS) designed for offline, forensic-grade analysis of bidirectional network flow records from the benchmark **CIC-IDS2017** dataset.
+**Sentinel NIDS** is a local application for offline analysis of recorded network-flow data from **CIC-IDS2017**. Its training command compares Logistic Regression, Random Forest, Extra Trees, and XGBoost, packages a selected binary classifier, and serves CSV predictions through a local API and dashboard.
 
-The system combines statistical machine learning classifiers (**Logistic Regression**, **Random Forest**, **XGBoost**, and **Isolation Forest**) with strict, leakage-aware experimental methodologies. It provides automated detection of malicious traffic, maps anomalous flows to standardized threat families, exposes inference via a high-performance **FastAPI** backend, and delivers real-time investigative telemetry through an interactive, terminal-themed **SOC (Security Operations Center) React Dashboard**.
+The repository includes a local CIC-IDS2017 training command that compares Logistic Regression, Random Forest, Extra Trees, and XGBoost, selects a model using validation PR-AUC, reports held-out metrics, and writes a checksummed bundle for the FastAPI service. Reproducing the run requires the CIC-IDS2017 CSV files under `data/raw/cicids2017/`. The service does not make rule-based substitute predictions.
 
 > [!IMPORTANT]
 > **Academic & Research Integrity Notice**:
-> This project follows strict scientific evaluation principles. Train/validation/test splits are constructed to eliminate data leakage. Final benchmark metrics are derived exclusively from frozen models evaluated on the held-out test split. Uncalibrated scores are treated as statistical model outputs rather than verified ground truth.
+> The current held-out evaluation uses a stratified random row split, which can place duplicated or temporally adjacent flows in different partitions and make results optimistic. A temporal or capture-group split is still needed for final academic claims. Prediction scores are uncalibrated model outputs, not probabilities or verified ground truth.
 >
-> **Current Status**: This repository is still a scaffold. No CIC-IDS2017 CSV files or model benchmark reports are included, and no model results have been generated. Place the dataset files under `data/raw/cicids2017/` and run the validation stage before using later pipeline stages.
+> **Current Status**: A full-data XGBoost bundle is active locally. The benchmark compares four classifiers on 2,830,743 CIC-IDS2017 flows; detailed metrics are in `reports/benchmark_metrics.json`. The bundle and raw dataset are local, git-ignored artifacts.
 
 ---
 
@@ -46,18 +46,18 @@ The system combines statistical machine learning classifiers (**Logistic Regress
 
 ## 🏗️ System Architecture
 
-The end-to-end data pipeline guarantees strict data isolation, reproducible model persistence, and seamless SOC analyst interaction (detailed in [`docs/ARCHITECTURE.md`](file:///c:/Users/ishaan/OneDrive/Desktop/ML%20PROJECT/docs/ARCHITECTURE.md)):
+The implemented training and serving flow is summarized below. Current evaluation uses randomized stratified row splits; see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for its limitations and the implemented endpoints.
 
 ```mermaid
 flowchart TD
     subgraph Data_Ingestion["1. Data Ingestion & Sanitization"]
         A["Raw CIC-IDS2017 CSVs\n(data/raw/cicids2017/)"] --> B["Schema Validation & Header Normalization"]
         B --> C["Data Cleaning: Inf/NaN Pruning & Column Aliasing"]
-        C --> D["Per-File Parquet Storage\n(data/interim/)"]
+        C --> D["Clean Numeric Flow Table"]
     end
 
-    subgraph Data_Splitting["2. Leakage-Aware Partitioning"]
-        D --> E["Contiguous Block Splitting\n(Temporal / Flow Preservation)"]
+    subgraph Data_Splitting["2. Stratified Partitioning"]
+        D --> E["Randomized Row Split\n(Train / Validation / Test)"]
         E --> F["Train Split (60%)"]
         E --> G["Validation Split (20%)"]
         E --> H["Frozen Test Split (20%)"]
@@ -65,16 +65,16 @@ flowchart TD
 
     subgraph Modeling["3. Model Training & Optimization"]
         F --> I["Feature Selection & Scaling\n(Fit on Train ONLY)"]
-        I --> J["Multi-Model Benchmark:\n• Logistic Regression\n• Random Forest\n• XGBoost\n• Isolation Forest"]
+        I --> J["Multi-Model Benchmark:\n• Logistic Regression\n• Random Forest\n• Extra Trees\n• XGBoost"]
         G --> K["Validation Threshold Tuning\n& Metric Calibration (PR-AUC, F1)"]
         J --> K
-        K --> L["Model Freezing & Packaging\n(models/bundle.joblib)"]
+        K --> L["Model Freezing & Packaging\n(models/<model-id>/bundle.joblib)"]
     end
 
     subgraph Evaluation["4. Test Set Evaluation & Reporting"]
         H --> M["Frozen Model Test Inference"]
         L --> M
-        M --> N["Reports & Figures\n(Confusion Matrix, ROC/PR, SHAP)"]
+        M --> N["JSON Metrics & Confusion Matrices\n(reports/benchmark_metrics.json)"]
     end
 
     subgraph Serving["5. Inference & Presentation Layer"]
@@ -86,7 +86,7 @@ flowchart TD
 
 ---
 
-## ✨ Key Features
+## ✨ Planned System Capabilities
 
 - **🛡️ Leakage-Aware Cross-Validation**: Preprocessing (imputation, scaling, encoding) is strictly fit on training data alone. Splits are partitioned across continuous temporal blocks to avoid flow-leakage across windows.
 - **⚡ High-Throughput REST API**: Asynchronous endpoints engineered with **FastAPI** and **Pydantic v2** supporting single-record inspection (`/predict`), high-volume batch scoring (`/predict/batch`), and model health monitoring (`/health`).
@@ -106,7 +106,7 @@ flowchart TD
 | **Linear Baseline** | Logistic Regression | Linear decision boundary baseline | L2 penalty (`C=1.0`), scaled standard features |
 | **Ensemble (Bagging)** | Random Forest | Non-linear feature interactions & robustness | `n_estimators=150`, `max_depth=20`, balanced subsampling |
 | **Ensemble (Boosting)** | XGBoost | SOTA gradient boosting on tabular network flows | `max_depth=6`, `learning_rate=0.08`, tree subsampling |
-| **Unsupervised Anomaly** | Isolation Forest | Zero-day & distribution outlier detection | `contamination=0.15`, path length anomaly score |
+| **Ensemble (Extra Randomization)** | Extra Trees | Non-linear feature interactions and variance reduction | `n_estimators=160`, `max_depth=24`, balanced classes |
 
 ### Target Attack Taxonomy (CIC-IDS2017)
 
@@ -134,8 +134,8 @@ The user interface is an enterprise-grade cyber command center built with **Reac
 2. **Threat Alerts (`alerts`)**: Triage panel displaying model-flagged flows with confidence scores, assigned severity (Low, Medium, High, Critical), protocol metadata, and one-click sanitized CSV exports.
 3. **Traffic Investigation (`investigation`)**: Deep-dive forensics terminal showing individual flow packet metrics, bidirectional payload statistics, inter-arrival time (IAT), and local feature importance explanations.
 4. **Network Activity (`network`)**: Protocol breakdowns (TCP/UDP/ICMP), communication port heatmaps, timeline aggregates, and talker endpoint distributions.
-5. **Model Performance (`performance`)**: Visual benchmark dashboard displaying ROC curves, Precision-Recall curves, confusion matrices, and cross-model comparison tables.
-6. **Traffic Analysis Lab (`lab`)**: Secure local file drop-zone supporting up to 200 MB CSV uploads for offline batch analysis and scoring.
+5. **Model Performance (`performance`)**: Cross-model table showing held-out precision, recall, F1, PR-AUC, and ROC-AUC from the generated benchmark report.
+6. **Traffic Analysis Lab (`lab`)**: Local CSV upload and model scoring through the FastAPI service, with a 500 MB request limit and chunked inference.
 
 ---
 
@@ -145,11 +145,15 @@ The FastAPI microservice ([`backend/`](file:///c:/Users/ishaan/OneDrive/Desktop/
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/health` | Healthcheck returning model readiness, schema version, and uptime |
-| `GET` | `/model/info` | Metadata on active model architecture, features, training date, and hash |
-| `POST` | `/predict` | Single flow inference with predicted label, confidence, and severity |
-| `POST` | `/predict/batch` | High-throughput batch inference accepting a list or CSV payload |
-| `POST` | `/explain` | Feature attribution endpoint returning top contributing SHAP values |
+| `GET` | `/health` | API and model readiness; reports `degraded` when no trusted bundle is available |
+| `GET` | `/model/info` | Metadata read from the active verified model bundle; empty fields before a model exists |
+| `GET` | `/model/benchmark` | Loads local train/validation/test comparison metrics for the active project |
+| `POST` | `/predict` | Scores one flow when a verified model bundle is active; otherwise returns `503 model_not_loaded` |
+| `POST` | `/predict/batch` | Scores 1-10,000 flow records when a verified model bundle is active |
+| `POST` | `/analyze/csv` | Scores a local CSV upload in 1,000-row chunks; returns aggregate counts and up to 100 preview rows |
+| `POST` | `/explain` | Returns `501 explanation_unavailable` until a supported explainer is connected |
+
+The service never substitutes hard-coded predictions, metrics, thresholds, or explanation values when artifacts are missing. See [`backend/README.md`](backend/README.md) for its request format and local run instructions.
 
 ### Example Inference Request
 
@@ -174,15 +178,9 @@ curl -X POST "http://127.0.0.1:8000/predict" \
 
 ## 🔬 Methodology & Leakage Prevention
 
-Data leakage is the most pervasive flaw in published NIDS literature. This project enforces structural engineering safeguards (documented in [`docs/DECISIONS.md`](file:///c:/Users/ishaan/OneDrive/Desktop/ML%20PROJECT/docs/DECISIONS.md)):
+The training script keeps preprocessing fitted to training data, chooses the operating threshold on validation data, and evaluates each frozen estimator on a held-out test partition. The current implementation uses a stratified random row split, so duplicate or temporally adjacent flows may cross partitions and make test metrics optimistic. A capture-group or temporal split is needed for final academic claims.
 
-1. **Contiguous & Temporal Splitting**:
-   - Random record shuffling across bidirectional flows introduces temporal cross-talk and memorization. Splits are partitioned into contiguous blocks to mirror real-world forensic deployment.
-2. **Isolation of Preprocessing Transformers**:
-   - Imputers, scalers (`StandardScaler`), and frequency encoders are calculated strictly on the **Training set** and subsequently applied to Validation and Test splits without refitting.
-3. **Model Freezing Before Final Evaluation**:
-   - Hyperparameter exploration and operating threshold decisions (e.g., balancing Precision vs. Recall to minimize False Alarm Rates) are executed exclusively on the **Validation set**.
-   - Once chosen, the model weights and thresholds are frozen. Test evaluation is executed exactly once to populate `reports/test_metrics.json`.
+The benchmark report is written to `reports/benchmark_metrics.json`. It compares Logistic Regression, Random Forest, Extra Trees, and XGBoost. The selected model and validation-derived threshold are packaged under `models/` with a SHA-256 checksum.
 
 ---
 
@@ -213,9 +211,10 @@ ML-Based-NIDS/
 │   ├── inference/                   # Inference bundles, prediction pipeline & severity rules
 │   └── storage/                     # Local run storage & optional database adapters
 ├── backend/                         # FastAPI application
-│   ├── routes/                      # API endpoint routers (/predict, /explain, /health)
-│   ├── schemas/                     # Pydantic v2 validation schemas
-│   └── main.py                      # FastAPI application entrypoint
+│   ├── schemas/                     # Flow request validation
+│   ├── main.py                      # App factory, health, model, predict and explain endpoints
+│   ├── predictor.py                 # Verified local model bundle loading and inference adapter
+│   └── README.md                    # API setup, bundle contract, and endpoint behavior
 ├── frontend/                        # Modern React SOC Terminal Dashboard
 │   ├── src/                         # Application source (App.tsx, components, hooks)
 │   │   ├── components/ui/           # Reusable UI primitives (bento grid, buttons, empty states)
@@ -310,24 +309,23 @@ The dashboard will be accessible at `http://localhost:5173`.
 
 ## ⚙️ Pipeline Execution
 
-Run the complete pipeline or individual stages via the CLI runner:
+Install dependencies, place the official CIC-IDS2017 CSV files in `data/raw/cicids2017/`, then train and package the model:
 
-```bash
-# Stage 1: Validate dataset files, schema integrity, and column mappings
-python scripts/run_pipeline.py --stage validate
-
-# Stage 2: Clean data and generate leakage-aware train/val/test splits
-python scripts/run_pipeline.py --stage process
-
-# Fast Mode: Subsample dataset for rapid prototyping and validation
+```powershell
+# Quick smoke run on a reproducible 5% sample of each CSV
 python scripts/run_pipeline.py --fast
 
-# Full Pipeline: Clean, train models, tune thresholds, and evaluate test set
-python scripts/run_pipeline.py --full
+# Full run; trains four classifiers and writes a verified model bundle
+python scripts/run_pipeline.py
 
-# Start the local FastAPI inference service
+# Metrics for each model are written to reports/benchmark_metrics.json.
+# Bundle is written below models/ and its ID recorded in models/ACTIVE.
+
+# Start or restart the API after training so it loads the active bundle
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+
+The current split is stratified and randomized at the row level; for final academic results, use a time- or capture-group-aware split to reduce the chance of related flows appearing across partitions. The fast sample is for a smoke run only and must not be reported as final performance.
 
 ---
 
@@ -337,8 +335,8 @@ This repository is structured around the **15-Mark Mini-Project Rubric** and the
 
 | Area | Marks | Implementation & Repository Evidence |
 |---|:---:|---|
-| **Data Cleaning & Splitting** | **3** | Documented cleaning logic, handling of `Inf`/`NaN` flow values, feature aliasing, and contiguous temporal block splitting in `src/nids/data/`. |
-| **Model Comparison & Analytics** | **4** | Comparative benchmarking of 4 distinct architectures (Logistic Regression, Random Forest, XGBoost, Isolation Forest) with ROC/PR curves, F1-scores, and honest evaluation in `reports/`. |
+| **Data Cleaning & Splitting** | **3** | CSV header normalization, nonnumeric and infinite value handling, stratified train/validation/test partitioning, and preprocessing fitted on training data. |
+| **Model Comparison & Analytics** | **4** | Logistic Regression, Random Forest, Extra Trees, and XGBoost comparison with precision, recall, F1, PR-AUC, ROC-AUC, and confusion matrices in `reports/benchmark_metrics.json`. |
 | **UI Deployment & Accessibility** | **4** | Enterprise React 19 SOC terminal dashboard (`frontend/`), cross-platform responsive layout, offline file upload lab, and optional Streamlit explorer. |
 | **Code Quality & Documentation** | **4** | Clean modular architecture, Ruff/Black code standards, unit & API test suites (`tests/`), complete architecture records, and academic report alignment. |
 

@@ -1,1 +1,1 @@
-"""Backend schemas for API request/response models."""
+"""Pydantic request schemas for the API."""

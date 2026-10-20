@@ -1,1 +1,1 @@
-"""Backend package for Sentinel NIDS Inference Service."""
+"""Local FastAPI service for Sentinel NIDS."""
