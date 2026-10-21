@@ -15,7 +15,6 @@ htmlcov/
 # User supplied or generated data
 /data/raw/cicids2017/*.csv
 /data/raw/nsl_kdd/**
-/nsl_kdd_full_test_upload.csv
 /data/interim/**
 /data/processed/**
 /data/runs/**

@@ -208,7 +208,6 @@ def create_app(model_path: str | Path | None = None) -> FastAPI:
 
     @application.post("/predict/batch", summary="Predict a batch of NSL-KDD connections")
     def predict_batch(payload: dict[str, Any], request: Request) -> Any:
-        predictor = require_predictor(request)
         flows = payload.get("flows")
         if not isinstance(flows, list) or not flows:
             raise ValueError("The request must contain a non-empty flows array.")
@@ -217,6 +216,7 @@ def create_app(model_path: str | Path | None = None) -> FastAPI:
         normalized = [flow.get("features", flow) if isinstance(flow, dict) else flow for flow in flows]
         if not all(isinstance(flow, dict) for flow in normalized):
             raise ValueError("Each flow in the flows array must be a JSON object.")
+        predictor = require_predictor(request)
         predictions = predictor.predict_many(normalized)
         malicious = sum(item["is_malicious_prediction"] for item in predictions)
         return {
