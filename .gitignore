@@ -14,6 +14,8 @@ htmlcov/
 
 # User supplied or generated data
 /data/raw/cicids2017/*.csv
+/data/raw/nsl_kdd/**
+/nsl_kdd_full_test_upload.csv
 /data/interim/**
 /data/processed/**
 /data/runs/**
@@ -21,8 +23,12 @@ htmlcov/
 !data/processed/.gitkeep
 !data/runs/.gitkeep
 
-# Model bundles are generated locally
+# Keep the active NSL-KDD model in Git so the backend works after checkout.
+# Other generated model bundles remain local.
 /models/**
+!/models/
+!/models/ml_ctd/
+!/models/ml_ctd/xgboost_model.pkl
 !models/.gitkeep
 
 # Generated figures
@@ -32,5 +38,8 @@ htmlcov/
 # Optional local database files
 *.sqlite
 *.db
+
+# Local service logs
+.runtime-logs/
 
 

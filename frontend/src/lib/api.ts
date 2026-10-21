@@ -13,7 +13,15 @@ export type ModelInfo = {
   threshold: number | null
   score_type: string | null
   feature_count: number | null
+  selected_feature_count: number | null
+  class_count: number | null
+  test_accuracy: number | null
+  test_accuracy_scope: string | null
+  test_rows: number | null
+  full_test_accuracy: number | null
+  full_test_rows: number | null
   supported_families: string[]
+  feature_names: string[]
   message?: string | null
 }
 
@@ -24,31 +32,19 @@ export type CsvAnalysis = {
   benign_count: number
   model_id: string
   feature_count: number
+  prediction_breakdown?: Array<{
+    prediction: string
+    category: string
+    count: number
+  }>
   preview: Array<{
     row_index: number
     score: number
     is_malicious_prediction: boolean
+    attack_family: string
+    predicted_label: string
     severity: string | null
   }>
-}
-
-export type BenchmarkMetrics = {
-  threshold: number
-  precision: number
-  recall: number
-  f1: number
-  pr_auc: number
-  roc_auc: number
-  confusion_matrix: number[][]
-}
-
-export type BenchmarkReport = {
-  dataset: string
-  rows: number
-  selected_model: string
-  selection_metric: string
-  test_set_used_for_selection: false
-  models: Record<string, { validation: BenchmarkMetrics; test: BenchmarkMetrics }>
 }
 
 const apiUrl = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
@@ -76,8 +72,4 @@ export async function analyzeCsv(file: File): Promise<CsvAnalysis> {
     throw new Error(payload?.error?.message || `Analysis failed (HTTP ${response.status})`)
   }
   return payload as CsvAnalysis
-}
-
-export async function getBenchmark(): Promise<BenchmarkReport> {
-  return getJson<BenchmarkReport>('/model/benchmark')
 }

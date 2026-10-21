@@ -27,7 +27,7 @@ For a full shadcn CLI-managed setup, initialize with `npx shadcn@latest init` an
 
 ## Frontend notes
 
-The six navigation destinations follow the product spec: Security Overview, Threat Alerts, Traffic Investigation, Network Activity, Model Performance, and Traffic Analysis Lab. The overview and empty states are implemented; the other pages have their themed starting layouts. The dashboard labels the environment as offline, avoids implying live monitoring, and uses `Not yet generated. Run the pipeline.` instead of invented results. The interface uses a black grid and phosphor-green terminal theme based on the supplied reference.
+The dashboard contains Security Overview and a Traffic Analysis Lab with three modes: Demo Prediction, Upload a File, and Paste a Row. It displays model details, attack-family descriptions, local API/model readiness, and prediction summaries. Test accuracy is shown as unavailable until a verified metric is supplied.
 
 The frontend checks API readiness on load and every 15 seconds. Set `VITE_API_URL` at build time to change the API address; it defaults to `http://127.0.0.1:8000`. An online API does not mean a model is available: the API can report `degraded` until a verified bundle is installed.
 
