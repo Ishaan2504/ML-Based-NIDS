@@ -40,13 +40,6 @@ a
 
 ---
 
-## 🎬 Demo & Screenshots
-> *(The following images are auto‑generated from the latest UI build.)*
-
-![Dashboard Screenshot](https://raw.githubusercontent.com/Ishaan2504/ML-Based-NIDS/main/docs/dashboard.png)
-
----
-
 ## 🚀 Quick Start (Windows)
 ```powershell
 # 1️⃣ Clone the repo
