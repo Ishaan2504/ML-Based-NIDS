@@ -1,4 +1,156 @@
-# Sentinel NIDS
+# Sentinel Network Intrusion Detection System (NIDS)
+
+![Sentinel NIDS Banner](https://raw.githubusercontent.com/Ishaan2504/ML-Based-NIDS/main/docs/banner.png)
+
+**Sentinel NIDS** is a powerful, open‑source network intrusion detection system that analyzes offline NSL‑KDD flow records using a pretrained XGBoost multiclass model. It provides a modern React dashboard and a FastAPI backend for fast, interactive analysis of up to ten CSV/TXT files at a time.
+
+---
+a
+## 📚 Table of Contents
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Demo & Screenshots](#demo--screenshots)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Training & Evaluation](#training--evaluation)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
+- [License](#license)
+- [References](#references)
+
+---
+
+## ✨ Features
+- **Offline flow analysis** – No live packet capture required.
+- **Batch processing** – Upload up to 10 NSL‑KDD CSV/TXT files in a single run.
+- **Rich visualisations** – Interactive class distribution charts, threat‑ratio gauges, and preview tables.
+- **Model introspection** – View model metadata, supported labels, and evaluation scores directly in the UI.
+- **Extensible pipeline** – Separate CIC‑IDS2017 benchmark scripts for research extensions.
+- **Docker‑ready** – Easy containerisation for reproducible deployments (see `Dockerfile` in `backend`).
+
+---
+
+## 🛠️ Technology Stack
+| Layer | Technology |
+|---|---|
+| UI | React 19, TypeScript, Vite, Recharts, Lucide |
+| API | Python 3.10‑3.12, FastAPI, Pydantic, Uvicorn |
+| Model & preprocessing | XGBoost, pandas, NumPy, scikit‑learn |
+| Dataset | NSL‑KDD (offline) |
+| Research pipeline | CIC‑IDS2017 benchmark (scripts) |
+
+---
+
+## 🎬 Demo & Screenshots
+> *(The following images are auto‑generated from the latest UI build.)*
+
+![Dashboard Screenshot](https://raw.githubusercontent.com/Ishaan2504/ML-Based-NIDS/main/docs/dashboard.png)
+
+---
+
+## 🚀 Quick Start (Windows)
+```powershell
+# 1️⃣ Clone the repo
+git clone https://github.com/Ishaan2504/ML-Based-NIDS.git
+cd ML-Based-NIDS
+
+# 2️⃣ Create a virtual environment and install Python deps
+python -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# 3️⃣ Start the FastAPI backend (default: http://127.0.0.1:8000)
+uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+In a **second terminal** run the frontend:
+```powershell
+cd frontend
+npm install
+npm run dev   # Vite dev server → http://localhost:5173
+```
+The UI will automatically point to the local API. Set `VITE_API_URL` env‑var if you need a different address.
+
+---
+
+## 📂 Project Structure
+```
+ML-Based-NIDS/
+├─ backend/                 # FastAPI service
+│   ├─ main.py
+│   └─ nsl_kdd_predictor.py
+├─ config/                  # Pipeline & attack‑family configs
+├─ data/raw/nsl_kdd/        # Place KDDTrain+/KDDTest+ here (git‑ignored)
+├─ docs/                    # Architecture diagrams, banners, screenshots
+├─ frontend/                # React dashboard (Vite)
+├─ models/ml_ctd/           # Pre‑trained XGBoost model (pickle)
+├─ reports/                 # Evaluation & benchmark JSON files
+├─ scripts/                 # Training, evaluation, CIC‑IDS pipeline
+├─ tests/                   # Unit & integration tests
+├─ requirements.txt
+├─ pyproject.toml
+└─ README.md                # THIS FILE
+```
+
+---
+
+## 📈 Training & Evaluation
+```bash
+# Train the XGBoost model on NSL‑KDD
+python scripts/train_nsl_kdd_model.py
+
+# Evaluate on the held‑out test split
+python -m scripts.evaluate_nsl_kdd_model
+```
+Metrics are written to `reports/nsl_kdd_test_metrics.json` and automatically linked in the dashboard UI.
+
+### CIC‑IDS2017 Research Pipeline
+```bash
+# After placing CIC‑IDS2017 CSVs under data/raw/cicids2017/
+python scripts/run_pipeline.py --fast   # Quick smoke test
+python scripts/run_pipeline.py          # Full benchmark (writes reports/benchmark_metrics.json)
+```
+
+---
+
+## 📡 API Reference
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Health check and model readiness |
+| `GET` | `/model/info` | Returns model metadata, supported labels, and evaluation scores |
+| `POST` | `/predict` | Predict a single NSL‑KDD connection (JSON payload) |
+| `POST` | `/predict/batch` | Predict up to 10 000 connections in a single request |
+| `POST` | `/analyze/csv` | Analyse an uploaded CSV/TXT file (used by the dashboard) |
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Please:
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feat/your-feature`).
+3. Run the full test suite:
+   ```bash
+   python -m pytest
+   ```
+4. Open a pull request against `main` with a clear description of your changes.
+
+All code follows the Black formatter and is linted with Ruff.
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📚 References
+- NSL‑KDD dataset: https://www.unb.ca/cic/datasets/nsl.html
+- CIC‑IDS2017 dataset: https://www.unb.ca/cic/datasets/ids-2017.html
+- XGBoost: https://xgboost.readthedocs.io/
+
+---
+
+*Feel free to raise issues, suggest features, or contribute improvements!*
 
 Sentinel NIDS is a local web application for analyzing **recorded NSL-KDD network connection data**. It pairs a React dashboard with a FastAPI service and a trained multiclass XGBoost model. Upload one or several CSV/TXT files to get a separate prediction summary for each file, including normal and threat counts, threat ratio, predicted classes, and attack families.
 
