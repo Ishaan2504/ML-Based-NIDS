@@ -1,6 +1,5 @@
 # Sentinel Network Intrusion Detection System (NIDS)
 
-![Sentinel NIDS Banner](https://raw.githubusercontent.com/Ishaan2504/ML-Based-NIDS/main/docs/banner.png)
 
 **Sentinel NIDS** is a powerful, open‑source network intrusion detection system that analyzes offline NSL‑KDD flow records using a pretrained XGBoost multiclass model. It provides a modern React dashboard and a FastAPI backend for fast, interactive analysis of up to ten CSV/TXT files at a time.
 
